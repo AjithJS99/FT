@@ -47,8 +47,13 @@ jobs:
 
       - name: Set Runner Admin Password
         run: |
-          $password = ConvertTo-SecureString -AsPlainText "${{ secrets.RUNNER_PASSWORD }}" -Force
-          Set-LocalUser  -Name "runneradmin" -Password $password
+          if (-not [string]::IsNullOrEmpty("${{ secrets.RUNNER_PASSWORD }}")) {
+              $password = ConvertTo-SecureString -AsPlainText "${{ secrets.RUNNER_PASSWORD }}" -Force
+              Set-LocalUser  -Name "runneradmin" -Password $password
+          } else {
+              Write-Error "RUNNER_PASSWORD secret is not set or is empty."
+              exit 1
+          }
         shell: pwsh
 
       - name: Create Ngrok Tunnel
