@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      ngrok_region:
+        description: 'Ngrok Region (e.g., us, eu, ap, au, sa, jp, in)'
+        required: true
+        default: 'us'
+        type: choice
+        options:
+          - us
+          - eu
+          - ap
+          - au
+          - sa
+          - jp
+          - in
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Download Ngrok
+        run: |
+          $ngrokUrl = "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip"
+          Invoke-WebRequest -Uri $ngrokUrl -OutFile ngrok.zip
+        shell: pwsh
+
+      - name: Extract Ngrok
+        run: Expand-Archive -Path ngrok.zip -DestinationPath .
+        shell: pwsh
+
+      - name: Authenticate Ngrok
+        run: .\ngrok\ngrok.exe authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        shell: pwsh
+
+      - name: Enable Remote Desktop
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+        shell: pwsh
+
+      - name: Set Runner Admin Password
+        run: |
+          $password = ConvertTo-SecureString -AsPlainText "${{ secrets.RUNNER_PASSWORD }}" -Force
+          Set-LocalUser -Name "runneradmin" -Password $password
+        shell: pwsh
+
+      - name: Create Ngrok Tunnel
+        run: |
+          $region = "${{ github.event.inputs.ngrok_region || 'us' }}"
+          Start-Process -FilePath ".\ngrok\ngrok.exe" -ArgumentList "tcp 3389 --region $region" -NoNewWindow
+        shell: pwsh
+
+      - name: Keep Tunnel Alive
+        run: |
+          while ($true) {
+            Start-Sleep -Seconds 60
+            Write-Output "Tunnel is still active..."
+          }
+        shell: pwsh
