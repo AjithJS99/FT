@@ -7,7 +7,7 @@ on:
       ngrok_region:
         description: 'Ngrok Region (e.g., us, eu, ap, au, sa, jp, in)'
         required: true
-        default: 'us'
+        default: 'in'
         type: choice
         options:
           - us
@@ -33,7 +33,7 @@ jobs:
         shell: pwsh
 
       - name: Authenticate Ngrok
-        run: .\ngrok\ngrok.exe authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+        run: .\ngrok.exe authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         shell: pwsh
@@ -53,8 +53,8 @@ jobs:
 
       - name: Create Ngrok Tunnel
         run: |
-          $region = "${{ github.event.inputs.ngrok_region || 'us' }}"
-          Start-Process -FilePath ".\ngrok\ngrok.exe" -ArgumentList "tcp 3389 --region $region" -NoNewWindow
+          $region = "${{ github.event.inputs.ngrok_region || 'in' }}"
+          Start-Process -FilePath ".\ngrok.exe" -ArgumentList "tcp 3389 --region $region" -NoNewWindow
         shell: pwsh
 
       - name: Keep Tunnel Alive
@@ -63,4 +63,4 @@ jobs:
             Start-Sleep -Seconds 60
             Write-Output "Tunnel is still active..."
           }
-        shell: pwsh"
+        shell: pwsh
