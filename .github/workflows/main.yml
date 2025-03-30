@@ -42,7 +42,7 @@ jobs:
         run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "User  Authentication" -Value 1
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "User Authentication" -Value 1
         shell: pwsh
 
       - name: Set Runner Admin Password
@@ -50,7 +50,7 @@ jobs:
           $runnerPassword = "${{ secrets.RUNNER_PASSWORD }}"
           if (-not [string]::IsNullOrEmpty($runnerPassword)) {
               $password = ConvertTo-SecureString -AsPlainText $runnerPassword -Force
-              Set-LocalUser  -Name "runneradmin" -Password "$password"
+              Set-LocalUser   -Name "runneradmin" -Password $password
           } else {
               Write-Error "RUNNER_PASSWORD secret is not set or is empty."
               exit 1
