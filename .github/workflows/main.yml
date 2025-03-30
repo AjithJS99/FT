@@ -49,7 +49,7 @@ jobs:
         run: |
           $runnerPassword = "${{ secrets.RUNNER_PASSWORD }}"
           if (-not [string]::IsNullOrEmpty($runnerPassword)) {
-              $password = ConvertTo-SecureString -AsPlainText $runnerPassword -Force
+              $password = ConvertTo-SecureString -AsPlainText $runnerPassword "P@ssw0rd!" -Force
               Set-LocalUser   -Name "runneradmin" -Password $password
           } else {
               Write-Error "RUNNER_PASSWORD secret is not set or is empty."
