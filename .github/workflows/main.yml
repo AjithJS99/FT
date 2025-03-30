@@ -1,39 +1,26 @@
 name: CI
 
-on:
-  push:
-  workflow_dispatch:
-    inputs:
-      ngrok_region:
-        description: 'Ngrok Region (e.g., us, eu, ap, au, sa, jp, in)'
-        required: true
-        default: 'in'
-        type: choice
-        options:
-          - us
-          - eu
-          - ap
-          - au
-          - sa
-          - jp
-          - in
+on: 
+  [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
       - name: Download Ngrok
         run: |
-          $ngrokUrl = "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip"
-          Invoke-WebRequest -Uri $ngrokUrl -OutFile ngrok.zip
+          Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile ngrok.zip
         shell: pwsh
 
       - name: Extract Ngrok
-        run: Expand-Archive -Path ngrok.zip -DestinationPath .
+        run: |
+          Expand-Archive -Path ngrok.zip -DestinationPath ngrok
         shell: pwsh
 
       - name: Authenticate Ngrok
-        run: .\ngrok.exe authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+        run: |
+          .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         shell: pwsh
@@ -47,20 +34,13 @@ jobs:
 
       - name: Set Runner Admin Password
         run: |
-          $runnerPassword = "${{ secrets.RUNNER_PASSWORD }}"
-          if (-not [string]::IsNullOrEmpty($runnerPassword)) {
-              $password = ConvertTo-SecureString -AsPlainText $runnerPassword "P@ssw0rd!" -Force
-              Set-LocalUser   -Name "runneradmin" -Password "P@ssw0rd!"
-          } else {
-              Write-Error "RUNNER_PASSWORD secret is not set or is empty."
-              exit 1
-          }
+          $password = ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force
+          Set-LocalUser  -Name "runneradmin" -Password $password
         shell: pwsh
 
       - name: Create Ngrok Tunnel
         run: |
-          $region = "${{ github.event.inputs.ngrok_region }}"
-          Start-Process -FilePath ".\ngrok.exe" -ArgumentList "tcp 3389 --region $region" -NoNewWindow
+          .\ngrok\ngrok.exe tcp 3389 --region in
         shell: pwsh
 
       - name: Keep Tunnel Alive
