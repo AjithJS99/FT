@@ -63,4 +63,4 @@ jobs:
             Start-Sleep -Seconds 60
             Write-Output "Tunnel is still active..."
           }
-        shell: pwsh
+        shell: pwsh"
