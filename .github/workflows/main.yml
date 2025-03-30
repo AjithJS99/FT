@@ -29,7 +29,8 @@ jobs:
         run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "User Authentication" -Value 1
+          # Add the user to the Remote Desktop Users group
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "runneradmin"
         shell: pwsh
 
       - name: Set Runner Admin Password
